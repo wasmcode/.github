@@ -1,0 +1,40 @@
+name: Publish package
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      access:
+        required: false
+        type: string
+        default: public
+      upload-dist:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  publish-package:
+    name: package
+    runs-on: ubuntu
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2  
+      - uses: actions/setup-node@v3
+      - name: Install dependencies
+        run: yarn install
+      - name: Build
+        run: yarn build
+      - name: Publish
+        run: yarn publish --access ${{ inputs.access }} --new-version ${{ inputs.version }}
+      - if: inputs.upload-dist
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
